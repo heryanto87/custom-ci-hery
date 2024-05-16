@@ -4,7 +4,7 @@ import { exec } from 'child_process';
 const app = express();
 const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3031;
 const appName = process.env.APP_NAME;
-const path = process.env.PATH;
+const path = process.env.APP_PATH;
 
 // List of commands to execute
 const commands: string[] = [
