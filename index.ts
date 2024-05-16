@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 
 const app = express();
 const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3031;
@@ -25,15 +25,24 @@ function executeCommands(commands: string[], index: number, callback: (error: Er
   }
 
   const command: string = commands[index];
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      // Error executing the command
-      callback(error);
+  const options = { shell: true }; // Run command within a shell environment
+  const childProcess = spawn(command, options);
+
+  childProcess.on('error', (error) => {
+    // Error executing the command
+    callback(error);
+  });
+
+  childProcess.on('exit', (code) => {
+    if (code !== 0) {
+      // Non-zero exit code indicates an error
+      const errorMessage = `Command '${command}' exited with code ${code}`;
+      callback(new Error(errorMessage));
       return;
     }
 
     console.log(`${command} successful`);
-    
+
     // Execute the next command recursively
     executeCommands(commands, index + 1, callback);
   });
