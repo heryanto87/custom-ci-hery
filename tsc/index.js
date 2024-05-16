@@ -8,12 +8,13 @@ const child_process_1 = require("child_process");
 const app = (0, express_1.default)();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3031;
 const appName = process.env.APP_NAME;
-const path = process.env.PATH;
+const path = process.env.APP_PATH;
 // List of commands to execute
 const commands = [
     `cd ${path}`,
     'git pull',
     `pm2 stop ${appName}`,
+    'npm install',
     'npm run build',
     `pm2 reload ${appName}`
 ];
