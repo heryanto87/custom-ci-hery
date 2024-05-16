@@ -4,9 +4,11 @@ import { exec } from 'child_process';
 const app = express();
 const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3031;
 const appName = process.env.APP_NAME;
+const path = process.env.PATH;
 
 // List of commands to execute
 const commands: string[] = [
+  `cd ${path}`,
   'git pull',
   `pm2 stop ${appName}`,
   'npm run build',
