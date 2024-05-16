@@ -3,13 +3,14 @@ import { exec } from 'child_process';
 
 const app = express();
 const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3031;
+const appName = process.env.APP_NAME;
 
 // List of commands to execute
 const commands: string[] = [
   'git pull',
-  'pm2 stop pacs-live',
+  `pm2 stop ${appName}`,
   'npm run build',
-  'pm2 reload pacs-live'
+  `pm2 reload ${appName}`
 ];
 
 // Function to execute commands iteratively
