@@ -11,6 +11,7 @@ const commands: string[] = [
   `cd ${path}`,
   'git pull',
   `pm2 stop ${appName}`,
+  'npm install',
   'npm run build',
   `pm2 reload ${appName}`
 ];
