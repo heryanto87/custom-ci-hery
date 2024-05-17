@@ -49,7 +49,7 @@ function executeCommands(commands: string[], index: number, callback: (error: Er
 }
 
 // Endpoint to trigger the commands
-app.get('/deploy', (req: Request, res: Response) => {
+app.post('/deploy', (req: Request, res: Response) => {
   executeCommands(commands, 0, (error, result) => {
     if (error) {
       console.error(`Error during deployment: ${error.message}`);
