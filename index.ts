@@ -21,6 +21,9 @@ app.post('/deploy', async (req, res) => {
     console.log(`Successfully changed directory to: ${path}`);
 
     // Run 'git pull'
+    await runCommand('git', ['restore', '.']);
+
+    // Run 'git pull'
     await runCommand('git', ['pull']);
 
     // Stop the application with pm2 (if running)
