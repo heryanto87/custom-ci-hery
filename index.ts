@@ -74,5 +74,7 @@ async function runCommand(command: string, args: string[]) {
     });
   });
 }
-var server = app.listen(3031, () => console.log('Server listening on port 3031'));
-server.setTimeout(300000)
+var server = app.listen(3031, () => {
+  console.log('Server listening on port 3031')
+  server.timeout = 300000
+});

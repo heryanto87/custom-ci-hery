@@ -14,18 +14,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const child_process_1 = require("child_process"); // For running shell commands securely
+const process_1 = require("process");
 const app = (0, express_1.default)();
 // Replace with your actual application name
 const appName = process.env.APP_NAME || '';
 const path = process.env.APP_PATH || '/var/www/pacs-live';
 app.post('/deploy', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const currentDir = (0, process_1.cwd)(); // Get current working directory
     try {
         // Optional: Authentication/authorization logic here
         // If authentication is required, implement a mechanism to validate
         // credentials before proceeding.
         console.log('Deployment initiated...');
-        // Change directory securely using execSync
-        (0, child_process_1.execSync)(`cd ${path}`);
+        yield (0, process_1.chdir)(path);
+        console.log(`Successfully changed directory to: ${path}`);
+        // Run 'git pull'
+        yield runCommand('git', ['restore', '.']);
         // Run 'git pull'
         yield runCommand('git', ['pull']);
         // Stop the application with pm2 (if running)
@@ -42,6 +46,10 @@ app.post('/deploy', (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     catch (error) {
         console.error('Deployment error:', error);
         res.status(500).json({ message: 'Deployment failed' });
+    }
+    finally {
+        // Consider restoring the original working directory
+        yield (0, process_1.chdir)(currentDir);
     }
 }));
 function runCommand(command, args) {
@@ -68,4 +76,7 @@ function runCommand(command, args) {
         });
     });
 }
-app.listen(3000, () => console.log('Server listening on port 3000'));
+var server = app.listen(3031, () => {
+    console.log('Server listening on port 3031');
+    server.timeout = 300000;
+});
