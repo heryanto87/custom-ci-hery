@@ -67,4 +67,4 @@ async function runCommand(command: string, args: string[]) {
   });
 }
 
-app.listen(3000, () => console.log('Server listening on port 3000'));
+app.listen(3031, () => console.log('Server listening on port 3000'));
