@@ -1,5 +1,6 @@
 import express from 'express';
-import { spawn, execSync } from 'child_process'; // For running shell commands securely
+import { spawn } from 'child_process'; // For running shell commands securely
+import { cwd, chdir } from 'process';
 
 const app = express();
 
@@ -8,6 +9,7 @@ const appName = process.env.APP_NAME || ''
 const path = process.env.APP_PATH || '/var/www/pacs-live'
 
 app.post('/deploy', async (req, res) => {
+  const currentDir = cwd(); // Get current working directory
   try {
     // Optional: Authentication/authorization logic here
     // If authentication is required, implement a mechanism to validate
@@ -15,8 +17,8 @@ app.post('/deploy', async (req, res) => {
 
     console.log('Deployment initiated...');
 
-    // Change directory securely using execSync
-    execSync(`cd ${path}`);
+    await chdir(path);
+    console.log(`Successfully changed directory to: ${path}`);
 
     // Run 'git pull'
     await runCommand('git', ['pull']);
@@ -38,6 +40,9 @@ app.post('/deploy', async (req, res) => {
   } catch (error) {
     console.error('Deployment error:', error);
     res.status(500).json({ message: 'Deployment failed' });
+  } finally {
+    // Consider restoring the original working directory
+    await chdir(currentDir);
   }
 });
 
@@ -67,4 +72,4 @@ async function runCommand(command: string, args: string[]) {
   });
 }
 
-app.listen(3031, () => console.log('Server listening on port 3000'));
+app.listen(3031, () => console.log('Server listening on port 3031'));
