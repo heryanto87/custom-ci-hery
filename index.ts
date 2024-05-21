@@ -8,7 +8,6 @@ const path = process.env.APP_PATH;
 
 // List of commands to execute
 const commands: string[] = [
-  `cd ${path}`,
   'git pull',
   `pm2 stop ${appName}`,
   'npm install',
@@ -25,8 +24,8 @@ function executeCommands(commands: string[], index: number, callback: (error: Er
   }
 
   const command: string = commands[index];
-  const options = { shell: true }; // Run command within a shell environment
-  const childProcess = spawn(command, options);
+  const options: string[] = []; // Run command within a shell environment
+  const childProcess = spawn(command, options, { cwd: path });
 
   childProcess.on('error', (error) => {
     // Error executing the command
