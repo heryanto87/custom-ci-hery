@@ -1,65 +1,70 @@
-import express, { Request, Response } from 'express';
-import { spawn } from 'child_process';
+import express from 'express';
+import { spawn, execSync } from 'child_process'; // For running shell commands securely
 
 const app = express();
-const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3031;
-const appName = process.env.APP_NAME;
-const path = process.env.APP_PATH;
 
-// List of commands to execute
-const commands: string[] = [
-  'git pull',
-  `pm2 stop ${appName}`,
-  'npm install',
-  'npm run build',
-  `pm2 reload ${appName}`
-];
+// Replace with your actual application name
+const appName = process.env.APP_NAME || ''
+const path = process.env.APP_PATH || '/var/www/pacs-live'
 
-// Function to execute commands iteratively
-function executeCommands(commands: string[], index: number, callback: (error: Error | null, result?: string) => void) {
-  if (index >= commands.length) {
-    // All commands executed successfully
-    callback(null, 'Deployment successful');
-    return;
+app.post('/deploy', async (req, res) => {
+  try {
+    // Optional: Authentication/authorization logic here
+    // If authentication is required, implement a mechanism to validate
+    // credentials before proceeding.
+
+    console.log('Deployment initiated...');
+
+    // Change directory securely using execSync
+    execSync(`cd ${path}`);
+
+    // Run 'git pull'
+    await runCommand('git', ['pull']);
+
+    // Stop the application with pm2 (if running)
+    await runCommand('pm2', ['stop', appName]);
+
+    // Install dependencies
+    await runCommand('npm', ['install']);
+
+    // Build the application
+    await runCommand('npm', ['run', 'build']);
+
+    // Restart the application with pm2
+    await runCommand('pm2', ['reload', appName]);
+
+    console.log('Deployment completed successfully!');
+    res.json({ message: 'Deployment successful' });
+  } catch (error) {
+    console.error('Deployment error:', error);
+    res.status(500).json({ message: 'Deployment failed' });
   }
+});
 
-  const command: string = commands[index];
-  const options: string[] = []; // Run command within a shell environment
-  const childProcess = spawn(command, options, { cwd: path });
+async function runCommand(command: string, args: string[]) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args);
 
-  childProcess.on('error', (error) => {
-    // Error executing the command
-    callback(error);
-  });
+    child.stdout.on('data', (data) => {
+      console.log(data.toString());
+    });
 
-  childProcess.on('exit', (code) => {
-    if (code !== 0) {
-      // Non-zero exit code indicates an error
-      const errorMessage = `Command '${command}' exited with code ${code}`;
-      callback(new Error(errorMessage));
-      return;
-    }
+    child.stderr.on('data', (data) => {
+      console.error(data.toString());
+    });
 
-    console.log(`${command} successful`);
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve(null);
+      } else {
+        reject(new Error(`Command '${command} ${args.join(' ')}' failed with exit code ${code}`));
+      }
+    });
 
-    // Execute the next command recursively
-    executeCommands(commands, index + 1, callback);
+    child.on('error', (error) => {
+      reject(error);
+    });
   });
 }
 
-// Endpoint to trigger the commands
-app.post('/deploy', (req: Request, res: Response) => {
-  executeCommands(commands, 0, (error, result) => {
-    if (error) {
-      console.error(`Error during deployment: ${error.message}`);
-      return res.status(500).send('Deployment failed');
-    }
-
-    res.send(result);
-  });
-});
-
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+app.listen(3000, () => console.log('Server listening on port 3000'));
